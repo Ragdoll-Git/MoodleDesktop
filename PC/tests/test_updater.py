@@ -106,9 +106,12 @@ def test_apply_portable_genera_bat_correcto(monkeypatch, tmp_path):
     assert str(current_exe) in bat       # reemplaza el exe actual
     assert str(new_exe) in bat           # con el nuevo descargado
     assert "start" in bat                # y lo relanza
+    assert "moveloop" in bat             # tiene retry para el move
     assert captured, "debe lanzar el .bat de forma desacoplada"
-    # Debe ir desacoplado del proceso para sobrevivir al cierre de la app.
-    assert captured["kwargs"].get("creationflags", 0) != 0
+    # Solo CREATE_NO_WINDOW (no DETACHED_PROCESS, son mutuamente excluyentes).
+    flags = captured["kwargs"].get("creationflags", 0)
+    assert flags != 0
+    assert not (flags & 0x00000008), "no debe usar DETACHED_PROCESS"
 
 
 def test_portable_target_writable_true(monkeypatch, tmp_path):

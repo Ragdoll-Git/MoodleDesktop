@@ -6,8 +6,9 @@ app) y lo aplica:
 
 * Instalador: se lanza el asistente descargado (UAC de Windows) y la app se
   cierra; al terminar, el propio instalador relanza FMoodle.
-* Portable: se descarga el nuevo .exe y un script .bat espera a que el proceso
-  actual termine, reemplaza el ejecutable y vuelve a abrirlo.
+* Portable: se descarga el nuevo .exe y un script .bat (con CREATE_NO_WINDOW)
+  espera a que el proceso actual termine, reemplaza el ejecutable con retry y
+  vuelve a abrirlo.
 
 La parte de red corre en un hilo aparte (UpdateWorker) para no congelar la UI.
 """
@@ -159,6 +160,8 @@ def _apply_portable(new_exe_path):
 
     # Espera a que el proceso actual termine (libera el lock del .exe), mueve el
     # nuevo ejecutable sobre el actual, lo relanza y se autoelimina.
+    # Se usa un retry en el move porque Windows puede tardar unos instantes en
+    # liberar el lock del archivo incluso después de que el proceso haya muerto.
     script = f"""@echo off
 :waitloop
 tasklist /FI "PID eq {pid}" 2>NUL | find "{pid}" >NUL
@@ -166,18 +169,36 @@ if not errorlevel 1 (
     timeout /t 1 /nobreak >NUL
     goto waitloop
 )
-move /Y "{new_exe_path}" "{current_exe}" >NUL
+set retries=0
+:moveloop
+move /Y "{new_exe_path}" "{current_exe}" >NUL 2>&1
+if errorlevel 1 (
+    set /a retries+=1
+    if %retries% GEQ 10 goto fail
+    timeout /t 1 /nobreak >NUL
+    goto moveloop
+)
 start "" "{current_exe}"
 del "%~f0"
+exit /b 0
+:fail
+del "%~f0"
+exit /b 1
 """
     with open(bat_path, "w", encoding="utf-8") as f:
         f.write(script)
 
-    detached = getattr(subprocess, "DETACHED_PROCESS", 0x00000008)
+    # IMPORTANTE: CREATE_NO_WINDOW y DETACHED_PROCESS son mutuamente
+    # excluyentes según la documentación de Windows. Usar ambos causa
+    # comportamiento indefinido (cmd.exe se cierra inmediatamente).
+    # CREATE_NO_WINDOW es el correcto: ejecuta cmd.exe sin ventana visible
+    # pero con consola funcional (stdin/stdout) para los comandos del .bat.
     no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+    cmd_exe = os.path.join(os.environ.get("SYSTEMROOT", r"C:\Windows"),
+                           "System32", "cmd.exe")
     subprocess.Popen(
-        ["cmd", "/c", bat_path],
-        creationflags=detached | no_window,
+        [cmd_exe, "/c", bat_path],
+        creationflags=no_window,
         close_fds=True,
     )
     return True
