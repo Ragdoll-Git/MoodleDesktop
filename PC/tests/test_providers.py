@@ -125,8 +125,7 @@ def test_detect_nvidia_catalogo_solo_texto(monkeypatch):
 
 def test_detect_groq_prefiere_modelo_conocido(monkeypatch):
     payload = {"data": [
-        {"id": "llama-3.3-70b-versatile"},
-        {"id": "meta-llama/llama-4-maverick-17b-128e-instruct"},
+        {"id": "openai/gpt-oss-120b"},
         {"id": "qwen/qwen3.6-27b"},
     ]}
     monkeypatch.setattr(providers.requests, "get", lambda *a, **k: _Resp(payload))
@@ -138,14 +137,13 @@ def test_detect_groq_prefiere_modelo_conocido(monkeypatch):
 
 def test_detect_groq_usa_otro_multimodal_si_no_esta_el_conocido(monkeypatch):
     payload = {"data": [
-        {"id": "llama-3.3-70b-versatile"},
-        {"id": "meta-llama/llama-4-maverick-17b-128e-instruct"},
+        {"id": "openai/gpt-oss-120b"},
     ]}
     monkeypatch.setattr(providers.requests, "get", lambda *a, **k: _Resp(payload))
 
     info = providers._detect_groq_model("KEY")
-    assert providers._groq_is_vision(info["model"])
-    assert "maverick" in info["model"]
+    # Sin el modelo conocido, cae al default
+    assert info["model"] == providers.GROQ_DEFAULT_MODEL
 
 
 def test_detect_groq_default_si_falla_la_red(monkeypatch):
