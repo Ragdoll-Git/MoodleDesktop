@@ -2,7 +2,7 @@
 ; (lo hace el workflow de GitHub Actions a partir del tag). Si no se define,
 ; se usa este valor por defecto para los builds locales.
 #ifndef MyAppVersion
-  #define MyAppVersion "3.6.0"
+  #define MyAppVersion "3.8.2"
 #endif
 
 [Setup]

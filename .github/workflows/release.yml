@@ -38,7 +38,7 @@ jobs:
         if ($ref -match '(\d+\.\d+(\.\d+)?)') {
           $version = $Matches[1]
         } else {
-          $version = "3.6.0"
+          $version = "3.8.2"
         }
         "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         Write-Host "Versión del release: $version"

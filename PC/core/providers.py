@@ -35,10 +35,10 @@ def _nvidia_is_vision(model_id):
     return any(hint in low for hint in _NVIDIA_VISION_HINTS)
 
 
-# Modelo de Groq conocido y multimodal (el que se usaba antes). Se usa como
-# preferido y como valor por defecto si la detección no encuentra nada mejor.
-GROQ_DEFAULT_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
-_GROQ_VISION_HINTS = ("llama-4", "scout", "maverick", "vision", "-vl")
+# Modelo de Groq que actualmente esta habilitado y es multimodal. Se usa como preferido y como valor
+# por defecto si la detección no encuentra nada mejor.
+GROQ_DEFAULT_MODEL = "qwen/qwen3.6-27b"
+_GROQ_VISION_HINTS = ("qwen3.6", "qwen2.5-vl", "qwen2-vl", "vision", "-vl", "llama-4", "scout", "maverick")
 
 
 def _groq_is_vision(model_id):
@@ -102,7 +102,7 @@ def _detect_nvidia_model(api_key):
 
 def _detect_groq_model(api_key):
     """Lista los modelos de Groq (API compatible con OpenAI) y prefiere uno
-    multimodal. Si no puede detectar, usa el modelo conocido (Llama 4 Scout)."""
+    multimodal. Si no puede detectar, usa el modelo conocido (Qwen 3.6 27B)."""
     try:
         url = "https://api.groq.com/openai/v1/models"
         headers = {"Authorization": f"Bearer {api_key.strip()}", "Accept": "application/json"}

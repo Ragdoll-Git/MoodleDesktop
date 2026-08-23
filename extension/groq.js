@@ -1,10 +1,10 @@
-// groq.js - Actualizado a Llama 4 Scout
+// groq.js - Actualizado a Qwen 3.6 27B
 export async function askGroq(question, base64Image, apiKey) {
     const url = "https://api.groq.com/openai/v1/chat/completions";
 
     const payload = {
-        // CAMBIO IMPORTANTE: Nuevo ID oficial de Llama 4 Scout (Vision)
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        // Qwen 3.6 27B - Soporta visión, rápido en Groq
+        model: "qwen/qwen3.6-27b",
         messages: [
             {
                 role: "user",
@@ -39,7 +39,7 @@ export async function askGroq(question, base64Image, apiKey) {
 
         if (!answer) throw new Error("Respuesta vacía de Groq");
 
-        return { success: true, text: answer, model: "Llama 4 Scout" };
+        return { success: true, text: answer, model: "Qwen 3.6 27B" };
 
     } catch (error) {
         console.error("Error en Groq Service:", error);

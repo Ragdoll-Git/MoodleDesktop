@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Resumen IA de Pantalla",
-  "version": "3.6.0",
+  "version": "3.8.2",
   "version_name": "Context MCP",
   "description": "Captura pantalla y consulta a múltiples IAs con soporte de Contexto Externo MCP.",
   "permissions": [

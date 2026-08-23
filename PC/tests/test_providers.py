@@ -123,11 +123,11 @@ def test_detect_nvidia_catalogo_solo_texto(monkeypatch):
     assert info["multimodal"] is False
 
 
-def test_detect_groq_prefiere_scout_conocido(monkeypatch):
+def test_detect_groq_prefiere_modelo_conocido(monkeypatch):
     payload = {"data": [
         {"id": "llama-3.3-70b-versatile"},
         {"id": "meta-llama/llama-4-maverick-17b-128e-instruct"},
-        {"id": "meta-llama/llama-4-scout-17b-16e-instruct"},
+        {"id": "qwen/qwen3.6-27b"},
     ]}
     monkeypatch.setattr(providers.requests, "get", lambda *a, **k: _Resp(payload))
 
@@ -136,7 +136,7 @@ def test_detect_groq_prefiere_scout_conocido(monkeypatch):
     assert info["multimodal"] is True
 
 
-def test_detect_groq_usa_otro_multimodal_si_no_esta_scout(monkeypatch):
+def test_detect_groq_usa_otro_multimodal_si_no_esta_el_conocido(monkeypatch):
     payload = {"data": [
         {"id": "llama-3.3-70b-versatile"},
         {"id": "meta-llama/llama-4-maverick-17b-128e-instruct"},
@@ -197,7 +197,7 @@ def test_fallback_sticky_fija_proveedor(monkeypatch):
         if prov == "gemini":
             raise Exception("gemini caído")
         if prov == "groq":
-            return "respuesta", "Groq (Llama 4 Scout)"
+            return "respuesta", "Groq (qwen/qwen3.6-27b)"
         raise Exception("nvidia tampoco")
 
     monkeypatch.setattr(providers, "_call_provider", fake_call)
