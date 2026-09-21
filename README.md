@@ -1,8 +1,6 @@
 # Moodle Desktop 🚀
 
-Moodle Desktop es una aplicación de escritorio nativa para Windows, diseñada para integrar y gestionar de forma centralizada múltiples proveedores de Inteligencia Artificial (Gemini, Claude, OpenAI, Groq y Nvidia Kimi K2.5).
-
-Originalmente nacida como una extensión web, Moodle Desktop ha evolucionado a un robusto sistema de escritorio con soporte para el protocolo MCP (Model Context Protocol), operación en memoria (Zero-Knowledge) y soporte nativo del sistema operativo.
+Moodle Desktop es una aplicación de escritorio nativa para Windows, diseñada para integrar y gestionar de forma centralizada múltiples proveedores de Inteligencia Artificial dentro de plataformas estudiantiles como Moodle para ayuda en temas o asignaturas donde la persona necesita comprender de otra forma el contenido.
 
 ## ✨ Características Principales
 
