@@ -2,7 +2,7 @@ import os
 import sys
 import winreg
 
-APP_NAME = "FMoodle"
+APP_NAME = "MoodleDesktop"
 
 def get_executable_path():
     # Si estamos compilados con PyInstaller, sys.executable es el .exe

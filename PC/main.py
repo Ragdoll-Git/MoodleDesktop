@@ -37,7 +37,7 @@ class MainController(QObject):
             icon = self.app.style().standardIcon(self.app.style().StandardPixmap.SP_ComputerIcon)
             
         self.tray = QSystemTrayIcon(icon, self.app)
-        self.tray.setToolTip("FMoodle Desktop IA")
+        self.tray.setToolTip("Moodle Desktop IA")
 
         menu = QMenu()
         

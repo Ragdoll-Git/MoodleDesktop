@@ -1,8 +1,8 @@
-# FMoodle Desktop 🚀
+# Moodle Desktop 🚀
 
-FMoodle es una aplicación de escritorio nativa para Windows, diseñada para integrar y gestionar de forma centralizada múltiples proveedores de Inteligencia Artificial (Gemini, Claude, OpenAI, Groq y Nvidia Kimi K2.5).
+Moodle Desktop es una aplicación de escritorio nativa para Windows, diseñada para integrar y gestionar de forma centralizada múltiples proveedores de Inteligencia Artificial (Gemini, Claude, OpenAI, Groq y Nvidia Kimi K2.5).
 
-Originalmente nacida como una extensión web, FMoodle ha evolucionado a un robusto sistema de escritorio con soporte para el protocolo MCP (Model Context Protocol), operación en memoria (Zero-Knowledge) y soporte nativo del sistema operativo.
+Originalmente nacida como una extensión web, Moodle Desktop ha evolucionado a un robusto sistema de escritorio con soporte para el protocolo MCP (Model Context Protocol), operación en memoria (Zero-Knowledge) y soporte nativo del sistema operativo.
 
 ## ✨ Características Principales
 
@@ -45,9 +45,9 @@ El repositorio está organizado en dos carpetas según el tipo de distribución:
 
 El proyecto ofrece **tres formatos de distribución**. La app de escritorio se compila con el script de automatización `PC/build.py` (impulsado por **PyInstaller**), y la extensión se empaqueta como `.zip`. En cada release de GitHub se publican los tres:
 
-1. **FMoodle Installer:** Versión de escritorio estándar para instalar permanentemente en el sistema.
-2. **FMoodle Portable:** Un solo `.exe` que puedes llevar en un USB, ejecutar sin permisos de administrador y usar con privacidad absoluta.
-3. **FMoodle Extension (Chrome):** La extensión de navegador (`FMoodle_Extension.zip`) para cargar en Chrome/Edge mediante "Cargar descomprimida" (modo desarrollador).
+1. **MoodleDesktop Installer:** Versión de escritorio estándar para instalar permanentemente en el sistema.
+2. **MoodleDesktop Portable:** Un solo `.exe` que puedes llevar en un USB, ejecutar sin permisos de administrador y usar con privacidad absoluta.
+3. **MoodleDesktop Extension (Chrome):** La extensión de navegador (`MoodleDesktop_Extension.zip`) para cargar en Chrome/Edge mediante "Cargar descomprimida" (modo desarrollador).
 
 ---
 Para aprender cómo instalar, compilar desde el código fuente o configurar tu versión portable, por favor lee la guía en el archivo **[INSTRUCCIONES.md](INSTRUCCIONES.md)**.
@@ -58,10 +58,10 @@ Para aprender cómo instalar, compilar desde el código fuente o configurar tu v
 Sí. La versión instalada (persistente) guarda sus datos en tu carpeta secreta de usuario (`AppData`) para no tener problemas de permisos. Además, si activas la opción "Iniciar automáticamente con Windows" en la configuración, el programa se añadirá al registro interno de tu sistema (`winreg`) y se ejecutará silenciosamente en segundo plano cada vez que enciendas tu computadora.
 
 **¿Dónde se guarda o cómo funciona exactamente la versión Portable?**
-La versión portable (`FMoodle_Portable.exe`) es un archivo único que se genera en la carpeta `PC/dist/` al compilar. Puedes llevarte ese ejecutable en un pendrive a cualquier PC. Al ejecutarse, entra en modo "Zero-Knowledge": no escribe NADA en el disco duro (ni archivos de configuración, ni guarda contraseñas en el administrador de credenciales de Windows). Todo se guarda exclusivamente en la memoria RAM y se pierde de forma segura en cuanto cierras la aplicación.
+La versión portable (`MoodleDesktop_Portable.exe`) es un archivo único que se genera en la carpeta `PC/dist/` al compilar. Puedes llevarte ese ejecutable en un pendrive a cualquier PC. Al ejecutarse, entra en modo "Zero-Knowledge": no escribe NADA en el disco duro (ni archivos de configuración, ni guarda contraseñas en el administrador de credenciales de Windows). Todo se guarda exclusivamente en la memoria RAM y se pierde de forma segura en cuanto cierras la aplicación.
 
 **¿Qué pasa con los "warnings" o advertencias naranjas de Inno Setup al compilar el instalador?**
 En versiones modernas de Inno Setup (6+), advertencias como `Warning: Architecture identifier "x64" is deprecated` o referidas al uso de `{pf}` son normales y no rompen tu instalador. De todas formas, la plantilla `inno_setup.iss` de este proyecto ya utiliza la sintaxis moderna (`x64compatible` y `{autopf}`) para evitar esas alertas.
 
 **Para usar la integración MCP (Model Context Protocol), ¿es necesario instalar Docker localmente?**
-No. El sistema MCP de FMoodle se comunica enviando peticiones web (HTTP POST) a la URL que le indiques. Puedes autohostear tu servidor MCP en cualquier máquina remota, servidor local o a través de una VPN (por ejemplo, `http://10.0.0.5:8080`) y FMoodle consumirá esos recursos directamente, sin requerir Docker ni otras herramientas instaladas en tu computadora local.
+No. El sistema MCP de Moodle Desktop se comunica enviando peticiones web (HTTP POST) a la URL que le indiques. Puedes autohostear tu servidor MCP en cualquier máquina remota, servidor local o a través de una VPN (por ejemplo, `http://10.0.0.5:8080`) y Moodle Desktop consumirá esos recursos directamente, sin requerir Docker ni otras herramientas instaladas en tu computadora local.

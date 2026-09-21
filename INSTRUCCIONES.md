@@ -1,6 +1,6 @@
 # Instrucciones de Uso y Compilación 🛠️
 
-Este documento detalla cómo utilizar, instalar y compilar **FMoodle Desktop** desde cero.
+Este documento detalla cómo utilizar, instalar y compilar **Moodle Desktop** desde cero.
 
 ---
 
@@ -8,24 +8,24 @@ Este documento detalla cómo utilizar, instalar y compilar **FMoodle Desktop** d
 
 Si solo quieres usar el programa, dirígete a la carpeta `PC/Releases/` en el código fuente (o descárgalos desde GitHub Releases) y elige tu versión preferida:
 
-### Opción A: Instalador Persistente (`FMoodle_Installer.exe`)
+### Opción A: Instalador Persistente (`MoodleDesktop_Installer.exe`)
 Ideal para tu computadora personal de uso diario.
-1. Ejecuta `FMoodle_Installer.exe`.
+1. Ejecuta `MoodleDesktop_Installer.exe`.
 2. Sigue el asistente de instalación clásico (Siguiente > Instalar).
 3. Una vez instalado, ábrelo. Ve a la pestaña **Ajustes** (ícono del engranaje).
 4. Introduce tus API Keys (se guardarán en el *Administrador de Credenciales de Windows*, jamás en texto plano).
 5. (Opcional) Activa "Iniciar con Windows" para que el asistente esté siempre activo al encender tu PC.
 
-### Opción B: Modo Portable (`FMoodle_Portable.exe`)
+### Opción B: Modo Portable (`MoodleDesktop_Portable.exe`)
 Ideal para computadoras de terceros, bibliotecas, oficinas o pendrives.
-1. Copia `FMoodle_Portable.exe` a tu pendrive.
+1. Copia `MoodleDesktop_Portable.exe` a tu pendrive.
 2. Ejecútalo. **No pedirá permisos de administrador**.
 3. Pon tus API Keys temporalmente en Ajustes.
 4. Cuando cierres la ventana, la memoria RAM se vaciará y la PC quedará sin ningún rastro de tus configuraciones o claves.
 
-### Opción C: Extensión de Chrome (`FMoodle_Extension.zip`)
-Ideal para usar FMoodle directamente dentro del navegador.
-1. Descarga `FMoodle_Extension.zip` desde GitHub Releases y descomprímelo (o usa directamente la carpeta `extension/` del código fuente).
+### Opción C: Extensión de Chrome (`MoodleDesktop_Extension.zip`)
+Ideal para usar Moodle Desktop directamente dentro del navegador.
+1. Descarga `MoodleDesktop_Extension.zip` desde GitHub Releases y descomprímelo (o usa directamente la carpeta `extension/` del código fuente).
 2. Abre Chrome/Edge y ve a `chrome://extensions`.
 3. Activa el **Modo de desarrollador** (interruptor en la esquina superior derecha).
 4. Pulsa **"Cargar descomprimida"** y selecciona la carpeta descomprimida (la que contiene `manifest.json`).
@@ -45,8 +45,8 @@ Si quieres modificar el código de la aplicación de escritorio (carpeta `PC/`),
 1. Abre tu terminal (PowerShell o CMD).
 2. Clona el repositorio y entra a la carpeta de la app de escritorio:
    ```powershell
-   git clone https://github.com/Ragdoll-Git/FMoodle.git
-   cd FMoodle/PC
+   git clone https://github.com/Ragdoll-Git/MoodleDesktop.git
+   cd MoodleDesktop/PC
    ```
 3. Crea y activa tu entorno virtual (dentro de `PC/`):
    ```powershell
@@ -75,9 +75,9 @@ pytest
 
 ## 3. Compilación y Empaquetado
 
-Para generar tus propios `.exe`, FMoodle cuenta con un script de compilación inteligente que usa `PyInstaller` encapsulado.
+Para generar tus propios `.exe`, Moodle Desktop cuenta con un script de compilación inteligente que usa `PyInstaller` encapsulado.
 
-1. Asegúrate de tener tu entorno virtual activo (`.\.venv\Scripts\activate`).
+1. Asegúrate de tener tu entorno virtual activo (`..venv\Scripts\activate`).
 2. Verifica que `pyinstaller` esté instalado:
    ```powershell
    pip install pyinstaller

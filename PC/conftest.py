@@ -9,4 +9,4 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # instalado eso escribiría en el APPDATA real del usuario. Forzamos modo
 # portable por defecto durante los tests para no tocar el sistema; cada test
 # que necesite el modo instalado lo sobreescribe con monkeypatch.
-os.environ.setdefault("FMOODLE_PORTABLE", "1")
+os.environ.setdefault("MOODLE_DESKTOP_PORTABLE", "1")

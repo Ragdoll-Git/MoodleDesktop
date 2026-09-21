@@ -6,11 +6,11 @@
 #endif
 
 [Setup]
-AppName=FMoodle
+AppName=Moodle Desktop
 AppVersion={#MyAppVersion}
-DefaultDirName={autopf}\FMoodle
-DefaultGroupName=FMoodle
-OutputBaseFilename=FMoodle_Installer
+DefaultDirName={autopf}\MoodleDesktop
+DefaultGroupName=Moodle Desktop
+OutputBaseFilename=MoodleDesktop_Installer
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -19,11 +19,11 @@ ArchitecturesInstallIn64BitMode=x64compatible
 Name: "desktopicon"; Description: "Crear un icono en el escritorio"; GroupDescription: "Iconos adicionales:"
 
 [Files]
-Source: "dist\FMoodle\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\MoodleDesktop\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\FMoodle"; Filename: "{app}\FMoodle.exe"
-Name: "{commondesktop}\FMoodle"; Filename: "{app}\FMoodle.exe"; Tasks: desktopicon
+Name: "{group}\Moodle Desktop"; Filename: "{app}\MoodleDesktop.exe"
+Name: "{commondesktop}\Moodle Desktop"; Filename: "{app}\MoodleDesktop.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\FMoodle.exe"; Description: "Ejecutar FMoodle"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\MoodleDesktop.exe"; Description: "Ejecutar Moodle Desktop"; Flags: nowait postinstall skipifsilent

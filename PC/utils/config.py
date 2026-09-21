@@ -13,7 +13,7 @@ def get_resource_path(relative_path):
 
 CONFIG_FILE = "config.json"
 PROMPTS_FILE = "prompts.json"
-SERVICE_NAME = "FMoodle"
+SERVICE_NAME = "MoodleDesktop"
 
 DEFAULT_CONFIG = {
     "MCP_ENABLED": False,
@@ -31,7 +31,7 @@ DEFAULT_PROMPTS = [
 
 class ConfigManager:
     def __init__(self, config_path=CONFIG_FILE, prompts_path=PROMPTS_FILE):
-        self.is_portable = os.environ.get("FMOODLE_PORTABLE") == "1"
+        self.is_portable = os.environ.get("MOODLE_DESKTOP_PORTABLE") == "1"
         
         if not self.is_portable:
             appdata_dir = os.environ.get("APPDATA", "")

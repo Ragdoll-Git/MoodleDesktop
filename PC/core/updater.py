@@ -1,11 +1,11 @@
-"""Sistema de auto-actualización de FMoodle Desktop.
+"""Sistema de auto-actualización de Moodle Desktop.
 
 Consulta el último release publicado en GitHub, compara versiones y, si hay una
 nueva, descarga el instalador o el portable (según cómo se esté ejecutando la
 app) y lo aplica:
 
 * Instalador: se lanza el asistente descargado (UAC de Windows) y la app se
-  cierra; al terminar, el propio instalador relanza FMoodle.
+  cierra; al terminar, el propio instalador relanza Moodle Desktop.
 * Portable: se descarga el nuevo .exe y un script .bat (con CREATE_NO_WINDOW)
   espera a que el proceso actual termine, reemplaza el ejecutable con retry y
   vuelve a abrirlo.
@@ -26,19 +26,19 @@ try:
 except Exception:  # pragma: no cover - fallback defensivo
     CURRENT_VERSION = "0.0.0"
 
-GITHUB_REPO = "Ragdoll-Git/FMoodle"
+GITHUB_REPO = "Ragdoll-Git/MoodleDesktop"
 LATEST_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 _HEADERS = {
-    "User-Agent": "FMoodle-Updater",
+    "User-Agent": "MoodleDesktop-Updater",
     "Accept": "application/vnd.github+json",
 }
 
-INSTALLER_ASSET = "FMoodle_Installer.exe"
-PORTABLE_ASSET = "FMoodle_Portable.exe"
+INSTALLER_ASSET = "MoodleDesktop_Installer.exe"
+PORTABLE_ASSET = "MoodleDesktop_Portable.exe"
 
 
 def is_portable():
-    return os.environ.get("FMOODLE_PORTABLE") == "1"
+    return os.environ.get("MOODLE_DESKTOP_PORTABLE") == "1"
 
 
 def is_frozen():
@@ -57,7 +57,7 @@ def portable_target_writable():
     el reemplazo fallaría sin pedir UAC, así que conviene avisar antes.
     """
     target_dir = os.path.dirname(sys.executable)
-    test_file = os.path.join(target_dir, ".fmoodle_write_test.tmp")
+    test_file = os.path.join(target_dir, ".moodledesktop_write_test.tmp")
     try:
         with open(test_file, "w") as f:
             f.write("x")
@@ -68,7 +68,7 @@ def portable_target_writable():
 
 
 def parse_version(text):
-    """Extrae (mayor, menor, parche) de un texto como 'FMoodle-v3.6.3' o '3.6'."""
+    """Extrae (mayor, menor, parche) de un texto como 'MoodleDesktop-v3.6.3' o '3.6'."""
     match = re.search(r"(\d+)\.(\d+)(?:\.(\d+))?", text or "")
     if not match:
         return (0, 0, 0)
@@ -144,7 +144,7 @@ def apply_update(downloaded_path):
 
 def _apply_installer(installer_path):
     # Se lanza el asistente normal: pedirá UAC e instalará sobre la versión
-    # actual. La casilla post-instalación de Inno relanza FMoodle al terminar.
+    # actual. La casilla post-instalación de Inno relanza Moodle Desktop al terminar.
     os.startfile(installer_path)  # noqa: S606 - ejecutable propio descargado del release
     return True
 
@@ -156,7 +156,7 @@ def _apply_portable(new_exe_path):
             "No hay permisos de escritura en la carpeta del portable."
         )
     pid = os.getpid()
-    bat_path = os.path.join(tempfile.gettempdir(), "fmoodle_update.bat")
+    bat_path = os.path.join(tempfile.gettempdir(), "moodledesktop_update.bat")
 
     # Espera a que el proceso actual termine (libera el lock del .exe), mueve el
     # nuevo ejecutable sobre el actual, lo relanza y se autoelimina.
@@ -223,7 +223,7 @@ class UpdateWorker(QObject):
     def do_download(self, url):
         try:
             suffix = ".exe"
-            fd, dest = tempfile.mkstemp(prefix="FMoodle_update_", suffix=suffix)
+            fd, dest = tempfile.mkstemp(prefix="MoodleDesktop_update_", suffix=suffix)
             os.close(fd)
             download(url, dest, progress_cb=self.progress.emit)
             self.download_finished.emit(dest)

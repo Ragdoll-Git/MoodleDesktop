@@ -1,9 +1,9 @@
-name: Build and Release FMoodle
+name: Build and Release Moodle Desktop
 
 on:
   push:
     tags:
-      - 'FMoodle-v*'
+      - 'MoodleDesktop-v*'
       - 'v*'
   workflow_dispatch:
 
@@ -68,16 +68,16 @@ jobs:
 
     - name: Package Chrome Extension
       shell: pwsh
-      run: Compress-Archive -Path extension/* -DestinationPath FMoodle_Extension.zip -Force
+      run: Compress-Archive -Path extension/* -DestinationPath MoodleDesktop_Extension.zip -Force
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          PC/dist/FMoodle_Portable.exe
-          PC/Output/FMoodle_Installer.exe
-          FMoodle_Extension.zip
+          PC/dist/MoodleDesktop_Portable.exe
+          PC/Output/MoodleDesktop_Installer.exe
+          MoodleDesktop_Extension.zip
         draft: false
         prerelease: false
         generate_release_notes: true

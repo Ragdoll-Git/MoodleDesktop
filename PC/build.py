@@ -30,24 +30,24 @@ def build():
         "--hidden-import", "keyring.backends.Windows",
     ]
 
-    print("Compilando versión Persistente (FMoodle.exe)...")
+    print("Compilando versión Persistente (MoodleDesktop.exe)...")
     subprocess.run([
         *pyinstaller_cmd,
         "--noconfirm",
         "--onedir",
         "--windowed",
-        "--name", "FMoodle",
+        "--name", "MoodleDesktop",
         *common_args,
         "main.py"
     ], check=True)
 
-    print("Compilando versión Portable (FMoodle_Portable.exe)...")
+    print("Compilando versión Portable (MoodleDesktop_Portable.exe)...")
     subprocess.run([
         *pyinstaller_cmd,
         "--noconfirm",
         "--onefile",
         "--windowed",
-        "--name", "FMoodle_Portable",
+        "--name", "MoodleDesktop_Portable",
         *common_args,
         "portable.py"
     ], check=True)

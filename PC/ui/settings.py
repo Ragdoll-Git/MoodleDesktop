@@ -61,7 +61,7 @@ class SettingsWindow(QWidget):
         self.nvidia_key.setEchoMode(QLineEdit.EchoMode.Password)
         layout.addWidget(self.nvidia_key)
 
-        if not os.environ.get("FMOODLE_PORTABLE") == "1":
+        if not os.environ.get("MOODLE_DESKTOP_PORTABLE") == "1":
             layout.addWidget(QLabel("--- Sistema ---"))
             self.autostart_chk = QCheckBox("Iniciar automáticamente con Windows")
             self.autostart_chk.setChecked(autostart.is_in_startup())
@@ -161,7 +161,7 @@ class SettingsWindow(QWidget):
         config_manager.set("GROQ_API_KEY", self.groq_key.text().strip())
         config_manager.set("NVIDIA_API_KEY", self.nvidia_key.text().strip())
         
-        if not os.environ.get("FMOODLE_PORTABLE") == "1":
+        if not os.environ.get("MOODLE_DESKTOP_PORTABLE") == "1":
             autostart.set_startup(self.autostart_chk.isChecked())
 
         config_manager.set("MCP_ENABLED", self.mcp_enabled.isChecked())
@@ -267,7 +267,7 @@ class SettingsWindow(QWidget):
         if updater.is_portable() and not updater.portable_target_writable():
             QMessageBox.warning(
                 self, "No se puede actualizar en esta carpeta",
-                "FMoodle Portable está en una carpeta sin permisos de "
+                "Moodle Desktop Portable está en una carpeta sin permisos de "
                 "escritura, por lo que no puede reemplazarse a sí mismo.\n\n"
                 "Movelo a un USB o a una carpeta de usuario como Documentos y "
                 "volvé a intentarlo. También podés descargar la nueva versión "
@@ -297,7 +297,7 @@ class SettingsWindow(QWidget):
             return
         QMessageBox.information(
             self, "Actualizando",
-            "FMoodle se cerrará para completar la actualización.")
+            "Moodle Desktop se cerrará para completar la actualización.")
         QApplication.instance().quit()
 
     def _on_update_error(self, msg):

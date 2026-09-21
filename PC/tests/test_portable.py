@@ -23,7 +23,7 @@ def _explode(*_args, **_kwargs):
 
 
 def test_portable_no_escribe_disco_ni_keyring(tmp_path, monkeypatch):
-    monkeypatch.setenv("FMOODLE_PORTABLE", "1")
+    monkeypatch.setenv("MOODLE_DESKTOP_PORTABLE", "1")
 
     # Cualquier uso de keyring en modo portable debe hacer fallar el test.
     monkeypatch.setattr(cfgmod.keyring, "set_password", _explode)
@@ -58,14 +58,14 @@ def test_portable_no_escribe_disco_ni_keyring(tmp_path, monkeypatch):
     assert not prompts_file.exists()
 
     # 3) No se tocó APPDATA (ni se creó la carpeta del servicio).
-    assert not (appdata / "FMoodle").exists()
+    assert not (appdata / "MoodleDesktop").exists()
     assert list(appdata.iterdir()) == []
 
 
 def test_instalado_si_persiste(tmp_path, monkeypatch):
     """Contraste: en modo instalado las mismas operaciones SÍ escriben en disco
     y usan keyring. Garantiza que las aserciones del test portable importan."""
-    monkeypatch.delenv("FMOODLE_PORTABLE", raising=False)
+    monkeypatch.delenv("MOODLE_DESKTOP_PORTABLE", raising=False)
     monkeypatch.setenv("APPDATA", str(tmp_path))
 
     # keyring falso en memoria (no tocamos el Credential Manager real).
@@ -80,12 +80,12 @@ def test_instalado_si_persiste(tmp_path, monkeypatch):
     cm = ConfigManager(config_path="config.json", prompts_path="prompts.json")
     assert cm.is_portable is False
 
-    base = tmp_path / "FMoodle"
+    base = tmp_path / "MoodleDesktop"
     # La inicialización ya escribió los archivos por defecto en disco.
     assert (base / "config.json").exists()
     assert (base / "prompts.json").exists()
 
     # La API key va al keyring (no a RAM).
     cm.set("GEMINI_API_KEY", "clave")
-    assert store[("FMoodle", "GEMINI_API_KEY")] == "clave"
+    assert store[("MoodleDesktop", "GEMINI_API_KEY")] == "clave"
     assert cm.get("GEMINI_API_KEY") == "clave"
