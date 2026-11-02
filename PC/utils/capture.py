@@ -8,27 +8,39 @@ from PIL import Image
 
 _ON_WAYLAND = sys.platform == 'linux' and os.environ.get('XDG_SESSION_TYPE') == 'wayland'
 
-# Persistent silent-capture session (ScreenCast/PipeWire). Set up via
-# init_screencast(); None means we fall back to the (flashing) Screenshot portal.
-_screencast = None
+# Silent capture via ScreenCast. The session is opened per capture and closed right
+# after, so GNOME's "screen sharing" indicator only shows for a moment. The permission
+# (restore token) is kept so the share dialog appears only once.
+_sc_state = None  # {'token': str|None, 'on_token': callable|None}
+
+
+def _new_session():
+    from utils.screencast import ScreenCastSession
+
+    def on_token(t):
+        _sc_state['token'] = t
+        if _sc_state['on_token']:
+            _sc_state['on_token'](t)
+
+    return ScreenCastSession(restore_token=_sc_state['token'], on_token=on_token)
 
 
 def init_screencast(restore_token=None, on_token=None):
-    """Open a silent ScreenCast session. Returns True on success.
+    """Enable silent capture. Returns True on success.
 
-    Must be called from the main thread before the Qt event loop starts, as it
-    may run a GLib loop and show the one-time 'share screen' dialog.
+    Opens a session once (main thread, before the Qt loop) so the one-time
+    'share screen' dialog shows now if there is no saved token, then closes it.
     """
-    global _screencast
+    global _sc_state
     if not _ON_WAYLAND:
         return False
+    _sc_state = {'token': restore_token, 'on_token': on_token}
     try:
-        from utils.screencast import ScreenCastSession
-        _screencast = ScreenCastSession(restore_token=restore_token, on_token=on_token)
+        _new_session().close()
         return True
     except Exception as e:
         print(f"[capture] ScreenCast no disponible, usando portal con flash: {e}")
-        _screencast = None
+        _sc_state = None
         return False
 
 
@@ -81,9 +93,13 @@ def _capture_mss() -> bytes:
 
 
 def capture_screen_base64() -> str:
-    if _screencast is not None:
+    if _sc_state is not None:
         try:
-            img = _screencast.capture()
+            session = _new_session()
+            try:
+                img = session.capture()
+            finally:
+                session.close()
             buf = io.BytesIO()
             img.save(buf, format="PNG")
             return base64.b64encode(buf.getvalue()).decode('utf-8')

@@ -48,7 +48,15 @@ class ScreenCastSession:
         unique = self.bus.get_unique_name()  # e.g. ":1.234"
         self._sender_token = unique[1:].replace('.', '_')
 
-        self._open_session()
+        self._ctx = GLib.MainContext.new()
+        self._ctx.push_thread_default()  # signal_subscribe dispatches here
+        try:
+            self._open_session()
+        except Exception:
+            self.close()
+            raise
+        finally:
+            self._ctx.pop_thread_default()
 
     # -- low-level portal helpers -------------------------------------------
 
@@ -65,7 +73,7 @@ class ScreenCastSession:
         Returns the results dict (str -> GLib.Variant). Raises on failure.
         """
         request_path = self._request_path(handle_token)
-        loop = GLib.MainLoop()
+        loop = GLib.MainLoop(self._ctx)
         outcome = {}
 
         def on_response(conn, sender, path, iface, signal, params):
@@ -83,7 +91,9 @@ class ScreenCastSession:
             loop.quit()
             return False
 
-        timeout_id = GLib.timeout_add_seconds(60, on_timeout)
+        timeout_src = GLib.timeout_source_new_seconds(60)
+        timeout_src.set_callback(lambda *_: on_timeout())
+        timeout_src.attach(self._ctx)
         try:
             self.bus.call_sync(
                 _PORTAL_BUS, _PORTAL_PATH, _SCREENCAST_IFACE, method,
@@ -92,7 +102,7 @@ class ScreenCastSession:
             loop.run()
         finally:
             self.bus.signal_unsubscribe(sub_id)
-            GLib.source_remove(timeout_id) if _source_alive(timeout_id) else None
+            timeout_src.destroy()
 
         if outcome.get('code') != 0:
             raise ScreenCastError(
@@ -202,7 +212,3 @@ class ScreenCastSession:
                 pass
             self.session_handle = None
 
-
-def _source_alive(source_id):
-    ctx = GLib.MainContext.default()
-    return GLib.MainContext.find_source_by_id(ctx, source_id) is not None
