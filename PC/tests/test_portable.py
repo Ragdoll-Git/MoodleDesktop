@@ -35,6 +35,7 @@ def test_portable_no_escribe_disco_ni_keyring(tmp_path, monkeypatch):
     appdata = tmp_path / "appdata"
     appdata.mkdir()
     monkeypatch.setenv("APPDATA", str(appdata))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(appdata))  # equivalente en Linux
 
     cfg_file = tmp_path / "config.json"
     prompts_file = tmp_path / "prompts.json"
@@ -67,6 +68,7 @@ def test_instalado_si_persiste(tmp_path, monkeypatch):
     y usan keyring. Garantiza que las aserciones del test portable importan."""
     monkeypatch.delenv("MOODLE_DESKTOP_PORTABLE", raising=False)
     monkeypatch.setenv("APPDATA", str(tmp_path))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))  # equivalente en Linux
 
     # keyring falso en memoria (no tocamos el Credential Manager real).
     store = {}
