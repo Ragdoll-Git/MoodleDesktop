@@ -5,8 +5,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QKeyEvent
 
+import base64
+import io
+from PIL import Image
 from utils.config import config_manager
-from utils.capture import get_screen_theme_hint
+from utils.capture import get_screen_theme_hint, get_theme_hint_from_image
 from ui.theme import get_stylesheet
 from core.providers import process_question
 
@@ -146,8 +149,9 @@ class OverlayWindow(QWidget):
             super().keyPressEvent(event)
 
     def apply_theme(self):
-        theme_hint = get_screen_theme_hint()
-        self.setStyleSheet(get_stylesheet(theme_hint))
+        # Tema inicial fijo: capturar la pantalla al arrancar dispara flash/sonido.
+        # show_for_capture() recalcula el tema con la captura real.
+        self.setStyleSheet(get_stylesheet('dark'))
 
     def on_prompt_selected(self, index):
         text = self.prompt_select.itemData(index)
@@ -234,6 +238,13 @@ class OverlayWindow(QWidget):
             " QPushButton:hover { background-color: rgba(230, 230, 230, 220); color: #111; }"
         )
 
+    def _reposition_bottom_center(self):
+        """Move the window to bottom-center of the available screen area."""
+        screen = QApplication.primaryScreen().availableGeometry()
+        x = screen.x() + (screen.width() - self.width()) // 2
+        y = screen.y() + screen.height() - self.height() - 20
+        self.move(x, y)
+
     def expand_from_pill(self):
         """Expande el pill para mostrar la respuesta completa."""
         if not self._pending_response:
@@ -253,12 +264,7 @@ class OverlayWindow(QWidget):
         self.set_input_visible(False)
         self.close_btn.show()
         self.resize(400, 150)
-
-        # Reposicionar al centro-inferior
-        screen = QApplication.primaryScreen().availableGeometry()
-        x = (screen.width() - self.width()) // 2
-        y = screen.height() - self.height() - 20
-        self.move(x, y)
+        QTimer.singleShot(50, self._reposition_bottom_center)
 
     def show_message(self, text, is_error=False):
         """Muestra un mensaje directo (errores de validación, etc.) sin pasar por el pill."""
@@ -271,11 +277,7 @@ class OverlayWindow(QWidget):
         self.set_input_visible(False)
         self.close_btn.show()
         self.resize(400, 150)
-
-        screen = QApplication.primaryScreen().availableGeometry()
-        x = (screen.width() - self.width()) // 2
-        y = screen.height() - self.height() - 20
-        self.move(x, y)
+        QTimer.singleShot(50, self._reposition_bottom_center)
         
     def refresh_prompts(self):
         # Guardar el índice actual si es posible, o limpiar
@@ -290,7 +292,13 @@ class OverlayWindow(QWidget):
     def show_for_capture(self, b64_img):
         self.refresh_prompts()
         self.base64_image = b64_img
-        self.apply_theme()
+        # Derive theme from the already-captured image to avoid a second screenshot.
+        try:
+            img = Image.open(io.BytesIO(base64.b64decode(b64_img)))
+            theme_hint = get_theme_hint_from_image(img)
+        except Exception:
+            theme_hint = get_screen_theme_hint()
+        self.setStyleSheet(get_stylesheet(theme_hint))
         
         # Resetear estado pill
         self._is_pill_mode = False
@@ -308,12 +316,10 @@ class OverlayWindow(QWidget):
         if self.prompt_select.count() > 1:
             self.prompt_select.setCurrentIndex(1)
 
-        # Reposicionar usando availableGeometry
-        screen = QApplication.primaryScreen().availableGeometry()
-        x = (screen.width() - self.width()) // 2
-        y = screen.height() - self.height() - 20
-        self.move(x, y)
-        
         self.show()
         self.activateWindow()
         self.input_box.setFocus()
+        # Reposition after the compositor has assigned the window geometry.
+        # On Wayland, move() before show() is ignored; a single-shot timer
+        # after show() lets the window system settle before we reposition.
+        QTimer.singleShot(50, self._reposition_bottom_center)

@@ -93,3 +93,24 @@ Para generar tus propios `.exe`, Moodle Desktop cuenta con un script de compilac
 ### Crear un Instalador Profesional
 Si deseas generar un instalador con formato asistente (Next > Next > Install), puedes descargar **Inno Setup Compiler**. 
 Abre el archivo `PC/inno_setup.iss` con este programa y dale al botón "Compile". Generará el instalador automáticamente en la carpeta `PC/Output/`. *(Nota vital: Debes haber ejecutado `build.py` primero para que se genere la carpeta `PC/dist/`, o de lo contrario Inno Setup lanzará un error de "No files found").*
+
+---
+
+## 🐧 Linux (desarrollo/pruebas)
+
+`PC/main.py` también corre en Linux: X11 (hotkeys vía `pynput`) y Wayland (hotkeys vía `evdev`, requiere estar en el grupo `input`).
+
+```bash
+cd PC
+python3 -m venv --system-site-packages .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python main.py
+```
+
+**Captura silenciosa en Wayland (GNOME/Zorin):** se usa el portal ScreenCast/PipeWire, sin flash ni sonido. Necesita `gi` (PyGObject) + GStreamer del sistema (`python3-gi`, `gir1.2-gst-plugins-base-1.0`, `gstreamer1.0-pipewire`), por eso el venv se crea con `--system-site-packages` (o `include-system-site-packages = true` en `.venv/pyvenv.cfg`). Sin `gi` cae al portal de screenshot de GNOME, con flash y sonido.
+
+La primera vez aparece el diálogo de *compartir pantalla*: elige el monitor y acepta. El permiso se guarda (`SCREENCAST_RESTORE_TOKEN` en `~/.config/MoodleDesktop/config.json`) y no vuelve a preguntar.
+
+La app corre en la bandeja del sistema: no abre ventana al iniciar; usa `Alt+Shift+Z` para el overlay.
+
+**Entrada en el menú de apps (opcional):** crear `~/.local/share/applications/moodledesktop.desktop` con `Exec=<repo>/PC/.venv/bin/python3 <repo>/PC/main.py`, `Path=<repo>/PC` e `Icon=<repo>/PC/images/icon128.png`.
