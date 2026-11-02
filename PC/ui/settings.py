@@ -1,4 +1,5 @@
 import os
+import sys
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QCheckBox, QComboBox, QMessageBox, QTabWidget,
@@ -63,7 +64,7 @@ class SettingsWindow(QWidget):
 
         if not os.environ.get("MOODLE_DESKTOP_PORTABLE") == "1":
             layout.addWidget(QLabel("--- Sistema ---"))
-            self.autostart_chk = QCheckBox("Iniciar automáticamente con Windows")
+            self.autostart_chk = QCheckBox("Iniciar automáticamente con Windows" if sys.platform == "win32" else "Iniciar automáticamente al iniciar sesión")
             self.autostart_chk.setChecked(autostart.is_in_startup())
             layout.addWidget(self.autostart_chk)
 
