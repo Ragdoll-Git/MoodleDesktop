@@ -34,10 +34,10 @@ class ConfigManager:
         self.is_portable = os.environ.get("MOODLE_DESKTOP_PORTABLE") == "1"
         
         if not self.is_portable:
-            appdata_dir = os.environ.get("APPDATA", "")
-            if not appdata_dir:
-                # Fallback: usar directorio home del usuario si APPDATA no está definido
-                appdata_dir = os.path.join(os.path.expanduser("~"), "AppData", "Roaming")
+            if sys.platform == "win32":
+                appdata_dir = os.environ.get("APPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Roaming")
+            else:
+                appdata_dir = os.environ.get("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
             base_dir = os.path.join(appdata_dir, SERVICE_NAME)
             os.makedirs(base_dir, exist_ok=True)
             self.config_path = os.path.join(base_dir, config_path)

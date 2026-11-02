@@ -7,8 +7,11 @@ from core import providers
 @pytest.fixture(autouse=True)
 def _clear_model_cache():
     providers._model_cache.clear()
+    providers.config_manager.config.pop(providers.MODEL_CACHE_KEY, None)
+    providers._last_refresh_attempt.clear()
     yield
     providers._model_cache.clear()
+    providers.config_manager.config.pop(providers.MODEL_CACHE_KEY, None)
 
 
 class _Resp:
@@ -126,7 +129,7 @@ def test_detect_nvidia_catalogo_solo_texto(monkeypatch):
 def test_detect_groq_prefiere_modelo_conocido(monkeypatch):
     payload = {"data": [
         {"id": "openai/gpt-oss-120b"},
-        {"id": "qwen/qwen3.6-27b"},
+        {"id": providers.GROQ_DEFAULT_MODEL},
     ]}
     monkeypatch.setattr(providers.requests, "get", lambda *a, **k: _Resp(payload))
 
@@ -232,3 +235,107 @@ def test_todos_los_proveedores_fallan(monkeypatch):
 
     with pytest.raises(Exception):
         providers.process_question("q", "BASE64", "gemini", False)
+
+
+# ------------------- Verificación (texto + imagen) y cache de 1 semana -------------------
+
+def _fake_ask(answers):
+    """answers: {(model, con_imagen): texto | Exception}"""
+    def fake(provider, key, model, question, b64, timeout, max_tokens=500):
+        r = answers[(model, bool(b64))]
+        if isinstance(r, Exception):
+            raise r
+        return r
+    return fake
+
+
+def test_probe_distingue_texto_e_imagen(monkeypatch):
+    monkeypatch.setattr(providers, "_ask_raw", _fake_ask({
+        ("a", False): "OK", ("a", True): "Rojo",
+        ("b", False): "OK", ("b", True): "no puedo ver imágenes",
+        ("c", False): Exception("404"), }))
+    assert providers._probe_model("groq", "K", "a") == (True, True)
+    assert providers._probe_model("groq", "K", "b") == (True, False)
+    assert providers._probe_model("groq", "K", "c") == (False, False)
+
+
+def test_detect_verified_elige_primer_multimodal_en_orden(monkeypatch):
+    monkeypatch.setattr(providers, "_candidates", lambda p, k: ["roto", "solo-texto", "bueno", "otro"])
+    monkeypatch.setattr(providers, "_ask_raw", _fake_ask({
+        ("roto", False): Exception("404"),
+        ("solo-texto", False): "OK", ("solo-texto", True): "?",
+        ("bueno", False): "OK", ("bueno", True): "red",
+        ("otro", False): "OK", ("otro", True): "rojo"}))
+    info = providers._detect_verified("groq", "K")
+    assert info["model"] == "bueno" and info["multimodal"] and info["verified"]
+
+
+def test_detect_verified_sin_multimodal_usa_solo_texto(monkeypatch):
+    monkeypatch.setattr(providers, "_candidates", lambda p, k: ["roto", "txt"])
+    monkeypatch.setattr(providers, "_ask_raw", _fake_ask({
+        ("roto", False): Exception("x"), ("txt", False): "OK", ("txt", True): "nada"}))
+    info = providers._detect_verified("groq", "K")
+    assert info["model"] == "txt" and not info["multimodal"] and info["verified"]
+
+
+def test_detect_verified_cae_a_heuristica_si_no_hay_red(monkeypatch):
+    def boom(p, k):
+        raise Exception("sin red")
+    monkeypatch.setattr(providers, "_candidates", boom)
+    monkeypatch.setattr(providers.requests, "get", lambda *a, **k: (_ for _ in ()).throw(Exception("sin red")))
+    info = providers._detect_verified("groq", "K")
+    assert info["model"] == providers.GROQ_DEFAULT_MODEL and info["verified"] is False
+
+
+def test_cache_disco_evita_redetectar_y_no_guarda_lo_no_verificado(monkeypatch):
+    calls = []
+    def detect(p, k):
+        calls.append(p)
+        return {"model": "m1", "name": "G (m1)", "multimodal": True, "verified": True}
+    monkeypatch.setattr(providers, "_detect_verified", detect)
+    assert providers._resolve_model("groq", "K")["model"] == "m1"
+    providers._model_cache.clear()                       # simula reiniciar la app
+    assert providers._resolve_model("groq", "K")["model"] == "m1"
+    assert calls == ["groq"]                             # la 2da salió del disco
+    providers._model_cache.clear()
+    assert len(calls) == 1 and providers._resolve_model("groq", "OTRA-KEY") and len(calls) == 2  # otra key -> redetecta
+
+
+def test_cache_no_persiste_heuristica_sin_verificar(monkeypatch):
+    monkeypatch.setattr(providers, "_detect_verified",
+                        lambda p, k: {"model": "h", "name": "h", "multimodal": True, "verified": False})
+    providers._resolve_model("groq", "K")
+    assert providers._disk_get("groq", "K") is None
+
+
+def test_cache_vencido_usa_el_viejo_y_refresca_en_segundo_plano(monkeypatch):
+    providers._disk_set("groq", "K", {"model": "viejo", "name": "v", "multimodal": True, "verified": True})
+    providers.config_manager.config[providers.MODEL_CACHE_KEY]["groq"]["ts"] -= providers.MODEL_CACHE_TTL + 5
+    refreshed = []
+    monkeypatch.setattr(providers, "_refresh_async", lambda p, k: refreshed.append(p))
+    monkeypatch.setattr(providers, "_detect_verified", lambda p, k: pytest.fail("no debe bloquear"))
+    assert providers._resolve_model("groq", "K")["model"] == "viejo"
+    assert refreshed == ["groq"]
+
+
+def test_error_de_modelo_invalida_y_reintenta(monkeypatch):
+    monkeypatch.setattr(providers.config_manager, "get",
+                        lambda k, d=None: "KEY" if k.endswith("_API_KEY") else providers.config_manager.config.get(k, d))
+    infos = iter([{"model": "viejo", "name": "v", "multimodal": True},
+                  {"model": "nuevo", "name": "n", "multimodal": True}])
+    monkeypatch.setattr(providers, "_resolve_model", lambda p, k: next(infos))
+    monkeypatch.setattr(providers, "_invalidate_model_cache", lambda p: None)
+
+    def ask(url, model, *a, **k):
+        if model == "viejo":
+            raise Exception("The model `viejo` does not exist")
+        return "ok"
+    monkeypatch.setattr(providers, "_ask_openai_compatible", ask)
+    assert providers._call_provider("groq", "q", "img", True) == ("ok", "n")
+
+
+def test_error_de_red_no_invalida_cache(monkeypatch):
+    assert not providers._is_model_error(Exception("Read timed out"))
+    assert not providers._is_model_error(Exception("Rate limit reached (429)"))
+    assert providers._is_model_error(Exception("Gemini Error: 404"))
+    assert providers._is_model_error(Exception("Status 404"))

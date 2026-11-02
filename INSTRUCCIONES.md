@@ -114,3 +114,14 @@ La primera vez aparece el diálogo de *compartir pantalla*: elige el monitor y a
 La app corre en la bandeja del sistema: no abre ventana al iniciar; usa `Alt+Shift+Z` para el overlay.
 
 **Entrada en el menú de apps (opcional):** crear `~/.local/share/applications/moodledesktop.desktop` con `Exec=<repo>/PC/.venv/bin/python3 <repo>/PC/main.py`, `Path=<repo>/PC` e `Icon=<repo>/PC/images/icon128.png`.
+
+---
+
+## 🔄 Selección automática de modelos
+
+Moodle Desktop elige solo el modelo de cada proveedor (Gemini, Groq, Nvidia) y lo mantiene actualizado:
+
+- Lista los modelos del proveedor y prueba los mejores candidatos con una consulta mínima de **texto** y otra de **imagen** (una imagen roja de 32×32). Se queda con el primero que responde bien en menos de 15 s y que realmente ve imágenes.
+- El resultado se guarda en `config.json` (`MODEL_CACHE`) durante **1 semana**; mientras tanto no hay llamadas extra. Si cambiás la API key, se vuelve a detectar.
+- Al vencer la semana se usa el modelo guardado y se actualiza en segundo plano, sin demorar la respuesta.
+- Si una consulta falla porque el modelo ya no existe (404 / "does not exist"), se vuelve a detectar al instante y se reintenta una vez.
