@@ -29,6 +29,9 @@ _NVIDIA_VISION_HINTS = (
 )
 
 
+_NVIDIA_PREFERRED = ("nvidia/nemotron-3.5-super-vl-120b-a12b",)
+
+
 def _nvidia_is_vision(model_id):
     """True si el id de modelo de Nvidia parece soportar imágenes (visión)."""
     low = model_id.lower()
@@ -37,8 +40,8 @@ def _nvidia_is_vision(model_id):
 
 # Modelo de Groq que actualmente esta habilitado y es multimodal. Se usa como preferido y como valor
 # por defecto si la detección no encuentra nada mejor.
-GROQ_DEFAULT_MODEL = "qwen/qwen3.6-27b"
-_GROQ_VISION_HINTS = ("qwen3.6", "qwen2.5-vl", "qwen2-vl", "vision", "-vl", "llama-4", "scout", "maverick")
+GROQ_DEFAULT_MODEL = "qwen/qwen3.8-27b"
+_GROQ_VISION_HINTS = ("qwen3", "qwen2.5-vl", "qwen2-vl", "vision", "-vl", "llama-4", "scout", "maverick")
 
 
 def _groq_is_vision(model_id):
@@ -69,9 +72,15 @@ def _detect_gemini_model(api_key):
         raise Exception("No se encontró un modelo Gemini compatible.")
 
     candidates.sort(key=_gemini_rank, reverse=True)
-    chosen = candidates[0]
+    # Los flash más nuevos (p. ej. 3.8) piensan ~30 s por consulta y vencen el timeout:
+    # preferimos uno rápido conocido y, si no está, el mejor rankeado.
+    chosen = next((m for m in _GEMINI_PREFERRED if m in candidates), candidates[0])
     # Todos los modelos Gemini con generateContent (1.5+/2.x/3.x) son multimodales.
     return {"model": chosen, "name": f"Gemini ({chosen})", "multimodal": True}
+
+
+# Modelos rápidos preferidos (en orden). Ver _detect_gemini_model.
+_GEMINI_PREFERRED = ("gemini-3.5-flash", "gemini-2.5-flash")
 
 
 def _gemini_rank(name):
@@ -92,9 +101,12 @@ def _detect_nvidia_model(api_key):
     if not ids:
         raise Exception("No se encontró ningún modelo en Nvidia.")
 
-    vision = [i for i in ids if _nvidia_is_vision(i)]
-    if vision:
-        chosen = vision[0]
+    # Varios modelos de visión del catálogo ya no tienen función desplegada (404);
+    # preferimos uno que funciona y descartamos los de embeddings.
+    vision = [i for i in ids if _nvidia_is_vision(i) and "embed" not in i.lower()]
+    preferred = next((m for m in _NVIDIA_PREFERRED if m in vision), None)
+    if preferred or vision:
+        chosen = preferred or vision[0]
         return {"model": chosen, "name": f"Nvidia ({chosen})", "multimodal": True}
     # Sin modelo de visión: queda como solo-texto (se saltea en consultas con imagen).
     return {"model": ids[0], "name": f"Nvidia ({ids[0]})", "multimodal": False}

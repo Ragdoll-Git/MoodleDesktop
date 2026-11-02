@@ -126,7 +126,7 @@ def test_detect_nvidia_catalogo_solo_texto(monkeypatch):
 def test_detect_groq_prefiere_modelo_conocido(monkeypatch):
     payload = {"data": [
         {"id": "openai/gpt-oss-120b"},
-        {"id": "qwen/qwen3.6-27b"},
+        {"id": providers.GROQ_DEFAULT_MODEL},
     ]}
     monkeypatch.setattr(providers.requests, "get", lambda *a, **k: _Resp(payload))
 
